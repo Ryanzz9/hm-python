@@ -57,20 +57,76 @@
 # 身体质量指数BMI的计算（BMI = 体重(kg) / 身高(m)²）
 
 # 1. 输入身高（单位：米）
-h = float(input("请输入身高（单位：米）："))
+# h = float(input("请输入身高（单位：米）："))
+#
+# # 2. 输入体重（单位：千克）
+# w = float(input("请输入体重（单位：千克）："))
+#
+# # 3. 计算并输出BMI
+# bmi = w / (h ** 2)
+# print(f"身体质量指数BMI是：{bmi:.2f}")  # 保留两位小数
+#
+# if bmi < 18.5:
+#     print("体重过轻")
+# elif 18.5 <= bmi < 24:
+#     print("正常范围")
+# elif 24 <= bmi < 28:
+#     print("超重")
+# else:
+#     print("肥胖")
 
-# 2. 输入体重（单位：千克）
-w = float(input("请输入体重（单位：千克）："))
+## 赋值运算符
 
-# 3. 计算并输出BMI
-bmi = w / (h ** 2)
-print(f"身体质量指数BMI是：{bmi:.2f}")  # 保留两位小数
+num = 85
 
-if bmi < 18.5:
-    print("体重过轻")
-elif 18.5 <= bmi < 24:
-    print("正常范围")
-elif 24 <= bmi < 28:
-    print("超重")
-else:
-    print("肥胖")
+num += 10  # num = num + 10
+print("num += 10 后,num=", num)
+
+num -= 10
+print("num -= 10 后,num=", num)
+
+num *= 10
+print("num *= 10 后,num=", num)
+
+num /= 10
+print("num /= 10 后,num=", num)
+
+num //= 10
+print("num //= 10 后,num=", num)
+
+num %= 3
+print("num %= 3 后,num=", num)
+
+num **= 3
+print("num **= 3 后,num=", num)
+
+## 比较运算符
+
+print("100 == 100吗：", 100 == 100)
+
+print("'100'=='100'吗：", "100" == "100")
+
+print("100 !=100吗：", 100 != 100)
+
+print("100 < 100吗：", 100 < 100)
+
+print("100 <= 100吗：", 100 <= 100)
+
+print("100 > 100吗：", 100 > 100)
+print("100 >= 100吗：", 100 >= 100)
+
+## 逻辑运算符
+
+
+# 需求1：键盘输入一个整数，判断这个数字是否在10-20之间。
+
+n = int(input("请输入一个整数:"))
+
+print(f"{n}在10-20之间：", n >= 10 and n <= 20)  # and连接的条件是并且的关系，两个条件同时成立（true），结果才是true；否则fALSE
+
+# print(f"{n}在10-20之间：", 10 <= n <= 20)
+
+
+# 需求2：键盘输入一个整数，判断这个数字是否不在10-20之间。
+n = int(input("请输入一个整数:"))
+print(f"{n}在10-20之间：", n < 10 or n > 20)  # or 连接的条件，是或者关系，只要其中有一个成立（true），结果就是true，否则false
