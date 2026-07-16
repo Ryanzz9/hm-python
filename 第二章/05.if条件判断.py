@@ -98,3 +98,90 @@ print("______________________________")
 #     print(f"{score}:及格了")
 # else:
 #     print(f"{score}:不及格")
+
+
+
+## if...elif...else 案例
+
+# 根据用户输入的数字，判断数字是正数，还是负数，还是0
+
+#
+# num = int(input("请输入数字："))
+#
+# if num > 0:
+#     print(f"{num}是一个正数")
+# elif num < 0:
+#     print(f"{num}是一个负数")
+# else:
+#     print(f"{num}是0")
+
+
+
+## 完成如下需求
+## 1.根据输入用户名、密码进行登录系统。
+
+#- 用户名、密码为 admin/666888 或root/547527 或 zhangsan/123456，则输出登录成功
+# - 否则就提示用户名或密码错误
+
+# username = input("请输入用户名：")
+# password = input("请输入密码：")
+#
+# if username == "admin" and password == "666888":
+#     print(f"{username} 登录成功")
+#
+# elif username == "root" and password == "547527":
+#     print(f"{username} 登录成功")
+# elif username == "zhangsan" and password == "123456":
+#     print(f"{username} 登录成功")
+#
+# else:
+#     print(f"用户 {username} 登录失败，用户名或密码错误")
+
+## 练习
+
+## 1. 根据输入的考试成绩，判断成绩等级。
+
+# 大于等于85分为优秀
+#60-85分为及格
+#否则就是不及格
+
+# score = int(input("请输入成绩："))
+#
+# if score > 85:
+#     print("优秀")
+# elif score >= 60:
+#     print("及格")
+# else:
+#     print("不及格")
+
+
+
+## 2. 购物折扣计算：根据输入的购物车的商品总额，以及如下的折扣规则，计算实际应付的金额。
+
+# 金额 >= 500：8折
+#  300 <= 金额< 500：9折
+#  100 <= 金额 < 300：95折
+#  金额 < 100：无折扣
+
+amount = int(input("输入商品总额："))
+original = amount
+
+if amount >= 500:
+    amount *= 0.8
+    discount = original - amount
+    print(f"商品总额8折，折扣完{amount:.2f}元，优惠了{discount:.2f}元")
+elif amount >= 300:
+    amount *= 0.9
+    discount = original - amount
+    print(f"商品总额9折，折扣完{amount:.2f}元，优惠了{discount:.2f}元")
+elif amount >= 100:
+    amount *= 0.95
+    discount = original - amount
+    print(f"商品总额95折，折扣完{amount:.2f}元，优惠了{discount:.2f}元")
+else:
+    print(f"无折扣，{amount:.2f}元")
+
+# :.2f 是 Python 中格式化字符串的用法，用于控制数字的显示格式。
+#f → fixed-point，表示浮点数格式
+#.2 → 表示保留2位小数
+#: → 分隔符，前面是变量，后面是格式说明
