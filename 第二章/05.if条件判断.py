@@ -163,25 +163,94 @@ print("______________________________")
 #  100 <= 金额 < 300：95折
 #  金额 < 100：无折扣
 
-amount = int(input("输入商品总额："))
-original = amount
-
-if amount >= 500:
-    amount *= 0.8
-    discount = original - amount
-    print(f"商品总额8折，折扣完{amount:.2f}元，优惠了{discount:.2f}元")
-elif amount >= 300:
-    amount *= 0.9
-    discount = original - amount
-    print(f"商品总额9折，折扣完{amount:.2f}元，优惠了{discount:.2f}元")
-elif amount >= 100:
-    amount *= 0.95
-    discount = original - amount
-    print(f"商品总额95折，折扣完{amount:.2f}元，优惠了{discount:.2f}元")
-else:
-    print(f"无折扣，{amount:.2f}元")
+# amount = int(input("输入商品总额："))
+# original = amount
+#
+# if amount >= 500:
+#     amount *= 0.8
+#     discount = original - amount
+#     print(f"商品总额8折，折扣完{amount:.2f}元，优惠了{discount:.2f}元")
+# elif amount >= 300:
+#     amount *= 0.9
+#     discount = original - amount
+#     print(f"商品总额9折，折扣完{amount:.2f}元，优惠了{discount:.2f}元")
+# elif amount >= 100:
+#     amount *= 0.95
+#     discount = original - amount
+#     print(f"商品总额95折，折扣完{amount:.2f}元，优惠了{discount:.2f}元")
+# else:
+#     print(f"无折扣，{amount:.2f}元")
 
 # :.2f 是 Python 中格式化字符串的用法，用于控制数字的显示格式。
 #f → fixed-point，表示浮点数格式
 #.2 → 表示保留2位小数
 #: → 分隔符，前面是变量，后面是格式说明
+
+
+
+
+"""
+案例 完成如下需求
+三角形类型判断：根据输入的三个边的边长（正整数），判定是等边三角形、等腰三角形、普通三角形，还是不能构成三角形。
+构成三角形的条件：两边之和大于第三边
+
+三角形判定规则：
+三个边都相等：等边三角形
+两个边相等：等腰三角形
+三个边都不相等：普通三角形
+"""
+
+#
+# a = int(input("请输入第一个边的边长："))
+#
+# b = int(input("请输入第二个边的边长："))
+#
+# c = int(input("请输入第三个边的边长："))
+#
+#
+# if a + b > c and a + c > b and b + c > a:
+#     if a == b and c == b:
+#         print(f"a={a},b={b},c={c} 这三个边长能构成等边三角形！！！")
+#     elif a == b or c == b:
+#         print(f"a={a},b={b},c={c} 这三个边长能构成等腰三角形！！！")
+#     else:
+#         print(f"a={a},b={b},c={c} 这三个边长能构成普通三角形！！！")
+# else:
+#     print(f"a={a},b={b},c={c} 这三个边长不能构成三角形！！！")
+
+
+
+# 练习 完成如下需求
+#
+# 北京市居民年度用电电费计算：根据输入的用电度数，计算电费
+#
+# 北京市居民电费采用阶梯电价计价方式，所谓阶梯电价是指按照用户消费的电量分段定价，用电价格随用电量增加呈阶梯状逐级递增的一种电价定价机制。
+#
+# 阶梯电价规则：
+#
+# 第一档：2880度以下，电费单价0.4883元/度
+#
+# 第二档：2880-4800度，电费单价0.5383元/度
+#
+# 第三档：4800度以上，电费单价0.7883元/度
+
+
+
+e_usage = int(input("请输入您的用电度数："))
+first_gear = 2880 * 0.4883
+second_gear = (4800 - 2880) * 0.5383
+
+if e_usage > 4800:
+    #e_usage -= 4800 * 0.7883
+    e_usage = (e_usage - 4800) * 0.7883
+    e_bill = first_gear + second_gear + e_usage
+    print(f"当前用电量处于最高档，您的电费为 {e_bill:.4f}")
+
+elif 2880 <= e_usage <= 4800:
+    e_usage = (e_usage - 2880) * 0.5383
+    e_bill= first_gear + e_usage
+    print(f"当前用电量处于二档，您的电费为 {e_bill:.4f}")
+
+else:
+    e_bill = e_usage * 0.4883
+    print(f"当前用电量处于一档，您的电费为 {e_bill:.4f} 元")
