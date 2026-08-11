@@ -96,3 +96,12 @@ c3.running()
 
 print(c3.total_price(discount=0.9))
 
+c4 = Cars(c_color="yellow",
+          c_brand="理想",
+          c_name="i6",
+          c_price=250000
+)
+
+c4.running()
+
+print(c4.total_price(discount=0.9))
