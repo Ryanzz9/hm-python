@@ -4175,6 +4175,991 @@ print(triangle_deter(1, 1, 2))     # 不能构成三角形（1+1 不大于 2）
 
 ### 函数进阶
 
+#### 函数变量的作用域
+
+变量的作用域指的是变量的作用范围(标识这个变量在哪里可以使用，在哪儿不可以使用)
+
+```python
+#定义函数
+num = 100
+def circle_area(r):
+    pi = 3.14
+    area = pi * r * r
+    return area
+
+count = 0
+#调用函数
+c_area = circle_area(10)
+print(c_area)
+```
+
 ‍
 
+全局变量：在函数之外定义的变量，称之为全局变量，在整个文件中(包括函数内）都可以使用（通常定义在文件的顶部）。  
+局部变量：在函数内部定义的变量，称之为局部变量，只能在该函数内部使用，外部无法访问(函数执行完毕后，会自动销毁其内部局部变量）。
+
+‍
+
+![image.png](https://foss.rzzz.net:443/ob-images/2026/08/07/20260807100121242.png)
+
+‍
+
+‍
+
+##### global关键字
+
+global关键字用于明确的告诉Python解释器，在函数中要使用全局变量，使得可以在函数内部修改全局变量的值。
+
+‍
+
+```python
+num1 = 1 # 全局变量
+def fun1():
+    num1 = 100 # 局部变量
+    print(num1)
+
+fun1() # 100
+print(num1) # 1
+```
+
+‍
+
+```python
+num1 = 1 # 全局变量
+def fun1():
+    global num1 # 告诉python解释器，函数中使用全局变量num1
+    num1 = 100 # 修改全局变量num1
+    print(num1)
+
+fun1() # 100
+print(num1) # 1
+```
+
+注意：在基于global声明全局变量时，要先声明，再使用。
+
+‍
+
+**小结**
+
+1.什么是局部变量，全局变量？  
+在函数内部定义的变量就是局部变量，函数外声明的变量是全局变量。
+
+2. global关键字的作用?  
+   在函数内部使用，声明接下来要使用的是全局变量，语法：`global xxx`
+
+3.注意事项  
+尽量避免在函数中使用全局变量，因为会使代码难以维护和调试  
+考虑使用函数参数和返回值来传递数据，而不是依赖全局变量  
+global主要用在程序的状态、配置和计数器等场景中
+
+‍
+
+global应用场景
+
+```python
+#调试开关
+debug_mode = False
+
+def enable_debug_mode():
+    global debug_mode
+    debug_mode = True
+    print("调试模式已开启")
+
+def disable_debug_mode():
+    global debug_mode
+    debug_mode = False
+    print("调试模式已关闭")
+```
+
+‍
+
+‍
+
+#### 函数参数详解
+
+‍
+
+传参方式
+
+1. 位置参数：调用函数时根据函数定义时的位置来传递参数。
+
+‍
+
+```python
+#定义函数
+def reg_stu(name, age, gender, city):
+    print(f"注册成功,姓名：{name}，年龄：{age}，性别：{gender}，城市：{city}")
+    return {"name": name, "age": age, "gender": gender, "city": city}
+#调用函数
+stu = reg_stu("张三", 18,"男","北京")
+print(stu)
+```
+
+‍
+
+要求：调用函数时参数顺序与定义函数时参数顺序完全一致
+
+‍
+
+2. 关键字参数：调用函数时以函数定义时形参名称作为关键字，以"键=值"的形式来传递参数(不要求顺序)。
+
+```python
+# 定义函数
+def reg_stu(name, age, gender, city):
+    print(f"注册成功,姓名:{name}, 年龄:{age}, 性别:{gender}, 城市:{city}")
+    return {"name": name, "age": age, "gender": gender, "city": city}
+
+# 调用函数
+stu = reg_stu(name="张三", age=18, gender="男", city="北京")
+print(stu)
+
+stu2 = reg_stu(gender="男", name="王武", city="上海", age=22)
+print(stu2)
+
+stu2 = reg_stu("赵四", 28, gender="男", city="上海")
+print(stu2)
+```
+
+‍
+
+要求：如果位置参数与关键字参数混用，关键字参数必须在位置参数之后(关键字参数之间，没有顺序要求)
+
+‍
+
+‍
+
+![image.png](https://foss.rzzz.net:443/ob-images/2026/08/07/20260807152054981.png)
+
+‍
+
+‍
+
+黄金法则：半年后回头看你今天写的代码，能否一眼看出每个参数的含义，如果不能，就应该使用关键字参数。
+
+‍
+
+**小结**
+
+1. **位置参数**
+
+   - 调用函数时，传入的实参的顺序与定义函数时形参的顺序完全一致。
+2. **关键字参数**
+
+   - 调用函数时，通过 "形参名\=值" 的形式传递参数，顺序没有要求。
+   - 如果同时存在位置参数与关键字参数，位置参数在前，关键字参数在后。（​*注：原图中此句为红色高亮，是重点注意事项*）
+3. **两种传参方式的适用场景**
+
+   - 一切以代码结构清晰明了（可读性）、便于维护（维护性）为目标。
+   - 如果参数比较少（不超过3个），可直接使用位置参数。
+   - 如果参数数量较多，建议使用关键字参数。
+
+‍
+
+‍
+
+##### 默认参数
+
+默认参数也称为缺省参数，用于在定义函数时，为参数提供默认值，调用函数时，可以不传递有默认值的参数。
+
+```python
+# 定义函数
+def reg_stu(name, age, gender, city='北京'):
+    print(f"注册成功,姓名:{name}, 年龄:{age}, 性别:{gender}, 城市:{city}")
+    return {"name": name, "age": age, "gender": gender, "city": city}
+
+# 调用函数
+stu = reg_stu("张三", 18, "男")
+print(stu)
+
+stu = reg_stu("赵四", 22, "男", "深圳")
+print(stu)
+```
+
+‍
+
+注意：默认参数必须放在没有默认值的参数列表的后面，一个函数在定义时是可以设置多个默认参数的。
+
+注意：函数调用时，如果为默认参数传递了值，则会修改默认的参数值；如果没有传递该参数，则直接使用默认值。
+
+‍
+
+‍
+
+‍
+
+##### 不定长参数
+
+需求：定义函数，根据传入的数据，计算这批数据中的最小值、最大值、平均值。
+
+‍
+
+![image.png](https://foss.rzzz.net:443/ob-images/2026/08/07/20260807160156226.png)
+
+‍
+
+介绍：不定长参数也叫可变参数，用于函数定义及调用时参数个数不确定（0个或多个）的场景。  
+类型：
+
+- 位置传递
+- 关键字传递
+
+‍
+
+不定长参数-位置传递`(*args)`
+
+```python
+#定义函数
+def calc_data(*args):
+    min_data = min(args)
+    max_data = max(args)
+    avg_data = sum(args) / len(args)
+    return min_data, max_data, round(avg_data,1)
+
+
+#调用函数
+data = calc_data(10, 20, 30, 40, 50, 60, 70, 80, 90, 100)
+print(data)
+
+data = calc_data(100, 200, 300, 400, 500)
+print(data)
+```
+
+‍
+
+注意：传递的所有匹配的位置参数都会被args变量收集，这些参数会合并封装为一个元组，args是元组类型(注意并不会封装关键字参数）。
+
+注意：args只是约定俗成的变量名，并不是关键字，这里可以使用任何合法的变量名(如*data)。
+
+‍
+
+**不定长参数-关键字传递(**kwargs)**
+
+‍
+
+```python
+
+# 需求：根据传入的这批数据，计算这批数据的最小值，最大值，平均值
+
+def calc_data(*args):
+    min_data = min(args)
+    max_data = max(args)
+    avg_data = sum(args) / len(args)
+    return min_data, max_data, round(avg_data,1)
+
+
+# 调用函数
+
+print(calc_data(2,7,9,10,45,37,73,93,111,222))
+
+#-----------------------函数 - 不定长参数（位置参数 **kwargs --- 字典）---------------------------------------
+def calc_data(*args,**kwargs):
+    """
+    根据传入的这批数据，计算这批数据的最小值，最大值，平均值
+    :param args:不定长位置参数，需要计算的这批数据
+    :param kwargs:不定长关键字参数
+           round：保留小位数个数
+           print: 是否打印输出
+    :return: 最大值，最小值，平均值
+    """
+    min_data = min(args)
+    max_data = max(args)
+    avg_data = sum(args) / len(args)
+
+    if kwargs.get("round") is not None:
+        avg_data = round(avg_data,kwargs.get("round"))
+    if kwargs.get("print"):
+        print(f"计算出来的最小值：{min_data},最大值{max_data},平均值{avg_data}")
+    return min_data, max_data, avg_data
+
+
+print(calc_data(2,7,9,10,45,37,73,93,111,222))
+
+print(calc_data(2,7,9,10,45,37,73,93,111,222,123123,round=3,print=True))
+```
+
+‍
+
+**小结**
+
+1. **什么是不定长参数？**
+
+   - 参数个数不确定，此时就可以使用不定长参数解决这类问题
+2. **不定长参数的分类？**
+
+   - `*args`：不定长位置参数，函数调用时，通过位置参数传递多个参数封装到一个元组 (tuple) 中
+   - `**kwargs`：不定长关键字参数，函数调用时，通过关键字参数传递多个参数封装到一个字典 (dict)
+3. `*args`​与`**kwargs`的应用场景？
+
+   - `*args`​ 适用于处理数量不确定的**数据**
+   - `**kwargs`​ 适用于处理数量不确定的​**选项**（函数的配置参数，用来定制函数的行为）
+
+‍
+
+‍
+
+‍
+
+##### 参数类型
+
+普通参数：数字、布尔、字符串、列表、元组、集合、字典等。
+
+特殊参数：函数。
+
+‍
+
+```python
+def add (x, y):
+    return x+y
+
+def subtract (x, y):
+    return x-y
+
+def calc(x, y, oper):
+    return oper(x, y)
+
+result = calc(10, 20, add)
+print(result)
+```
+
+‍
+
+```python
+# 函数的参数类型
+
+
+# 加
+
+def add(x,y):
+    return x+y
+
+# 减
+def sub(x,y):
+    return x-y
+# 乘
+def mul(x,y):
+    return x*y
+# 除
+def div(x,y):
+    return x/y
+
+
+
+
+def calc(x,y,oper):
+    return oper(x,y)
+
+
+print(calc(1,2,add))
+print(calc(1,2,sub))
+print(calc(1,2,mul))
+print(calc(1,2,div))
+```
+
+‍
+
+#### 匿名函数
+
+匿名函数指的是没有名称的函数，需要通过lambda表达式来声明函数，可以简化简单函数的编写（单行表达式）。
+
+‍
+
+```python
+#定义匿名函数
+lambda 参数列表：函数体
+lambda : print('------')
+lambda x, y: x + y
+```
+
+‍
+
+自动return
+
+‍
+
+```python
+#定义匿名函数
+lambda 参数列表：函数体
+out_line = lambda : print('------')
+add = lambda x, y: x + y
+
+
+out_line()
+print(add(100, 200))
+```
+
+注意：函数逻辑比较简单(单行表达式)且只在一个地方使用时，可以考虑使用匿名函数，简化书写(通常作为高阶函数的参数使用）。
+
+‍
+
+```python
+# 匿名函数
+
+# 需求1：打印一个分割线
+# 使用 lambda 定义（你原来代码里的 # 井print 应该是打字笔误，不必在意）
+out_line = lambda: print("-" * 30)  # 改成了打印30个"-"，分割线更明显
+out_line()  # 调用执行打印
+
+# 需求2：计算两个数之和
+# 使用 lambda 实现
+add = lambda x, y: x + y
+result = add(10, 20)
+print(f"10 + 20 的结果是: {result}")
+
+# 也可以直接在调用时传参
+print(lambda x, y: x + y(3, 5)) # 注意：这行代码会打印函数对象，要加括号调用。正确的是：
+print((lambda x, y: x + y)(3, 5)) # 直接调用匿名函数计算 3+5，输出 8
+
+# #需求3：完成如下列表的排序操作，按照每一个元素的字符个数，从小到大排序；
+data_list =["C++", "C", "Python", "Jack", "PHP", "Java", "Go", "JavaScript", "Rust"]
+
+print(data_list)
+
+data_list.sort(key=lambda item : len(item), reverse=True)
+print(data_list)
+ 
+```
+
+‍
+
+小结
+
+**1. 匿名函数的定义方式**
+
+‍
+
+```python
+# 定义匿名函数
+lambda 参数列表 : 函数体
+```
+
+**2. 命名函数与匿名函数的选择？**
+
+- **建议使用匿名函数的情况：**  函数逻辑简单，只在一个地方调用（常作为高阶函数的参数）
+- **建议使用命名函数的情况：**  函数逻辑复杂，需要多步操作，需要多个地方重复使用或需要加文档说明的场景
+
+‍
+
+#### 案例
+
+‍
+
+‍
+
+![image.png](https://foss.rzzz.net:443/ob-images/2026/08/07/20260807170228983.png)
+
+‍
+
+```python
+# 定义一个函数，根据传入的数字，计算该数字阶乘的结果。
+# 递归调用，指的是在函数中自己调用自己的情况 ，一定得有终结点
+def calc(n):
+    if n <= 1:
+        return 1
+    return n * calc(n-1)
+
+print(calc(3))
+```
+
+‍
+
+‍
+
+**案例：电商订单计算器**
+
+定义一个函数，用于根据传入的一批商品信息（商品名、价格、数量）、优惠（优惠券、积分抵扣）、运费信息计算订单的总金额。
+
+具体规则如下：
+
+- 优惠券需要商品金额满5000才可以使用，且优惠券金额不能超过商品总价。
+- 积分抵扣需要商品总金额满5000才可以使用，100积分抵扣1元（且抵扣金额不能超过商品总价，积分只能整百抵扣）。
+
+‍
+
+‍
+
+‍
+
+#### 类型注解
+
+类型注解是Python中的一种语法特性，用于明确标识变量、函数参数和返回值的数据类型从而使代码更清晰、更安全、更易维护。
+
+```python
+# 定义变量
+a: int = 695
+score: float = 98.5
+hobby: str = "Python"
+flag: bool = True
+pic: None = None
+
+names: list[str] = ["A", "C", "E"]
+phones: set[str] = {"13309091111", "15209109121"}
+options: dict[str, int] = {"count": 0, "total": 0}
+goods: tuple[str, int, int] = ("手机", 5999, 1) 
+```
+
+‍
+
+‍
+
+![image.png](https://foss.rzzz.net:443/ob-images/2026/08/11/20260811093716954.png)
+
+‍
+
+```python
+# 1. 基础变量定义（未指定类型注解）
+
+# 变量定义 - 未指定类型注解
+a = 596
+score = 98.5
+hobby = "Python"
+flag = True
+pic = None
+
+names = ["A", "C", "E"]
+phones = {"13309091111", "15209101902", "18809019201"}
+options = {"count":2 , "total":10}
+goods = ("手机", 6999, 1)
+
+
+names.append("a")
+names.append(1233)
+
+
+# 2. 进阶变量定义（指定类型注解）
+# 变量定义 - 指定类型注解
+a2: int = 596
+score2: float = 98.5
+hobby2: str = "Python"
+flag2: bool = True
+pic2: None = None
+
+names2: list[str | int] = ["A", "C", "E"]
+phones2: set[str] = {"13309091111", "15209101902", "18809019201"}
+options2: dict[str, int] = {"count":2 , "total":10}
+goods2: tuple[str, int, int] = ("手机", 6999, 1)
+
+
+phones2.add(123123123)
+
+options2.update({"sxxxxx":"asdasd" , "1233333":"sadasdasd"})
+
+names2.append("asd")
+```
+
+‍
+
+**类型推断**  
+类型推断是指Python解释器自动推断出变量、表达式或函数返回值的数据类型的能力，而无需开发者显式声明。
+
+‍
+
+类型注解只是起到语法提示作用，并不会影响程序运行的结果
+
+‍
+
+**小结**
+
+1. 类型注解的写法？
+
+   - 变量：数据类型（如 `a: int`）
+2. 常见类型的写法
+
+   - `int`​、`float`​、`bool`​、`str`​、`None`​、`list`​、`set`​、`tuple`​、`dict`
+   - `str | int`
+3. 为什么要使用类型注解，有什么好处呢？
+
+   - 代码结构更清晰、代码逻辑更安全、易维护
+   - 更准确的代码自动提示
+   - 提前发现代码潜在问题
+
+‍
+
+‍
+
+如果对变量直接赋值、变量运算等场景，Python会自动进行类型推断  
+Python是动态类型语言，添加的类型注解只是提示，并不是强制约束!!!
+
+‍
+
+‍
+
+#### 函数类型注解
+
+为函数添加类型注解，其实主要就是为函数的参数和返回值添加类型注解，具体语法如下：
+
+‍
+
+‍
+
+![image.png](https://foss.rzzz.net:443/ob-images/2026/08/11/20260811095409930.png)
+
+‍
+
+‍
+
+![image.png](https://foss.rzzz.net:443/ob-images/2026/08/11/20260811102139848.png)
+
+‍
+
+‍
+
+‍
+
+```python
+# 1. 基础变量定义（未指定类型注解）
+import math
+
+# 变量定义 - 未指定类型注解
+a = 596
+score = 98.5
+hobby = "Python"
+flag = True
+pic = None
+
+names = ["A", "C", "E"]
+phones = {"13309091111", "15209101902", "18809019201"}
+options = {"count":2 , "total":10}
+goods = ("手机", 6999, 1)
+
+
+names.append("a")
+names.append(1233)
+
+
+# 2. 进阶变量定义（指定类型注解）
+# 变量定义 - 指定类型注解
+a2: int = 596
+score2: float = 98.5
+hobby2: str = "Python"
+flag2: bool = True
+pic2: None = None
+
+names2: list[str | int] = ["A", "C", "E"]
+phones2: set[str] = {"13309091111", "15209101902", "18809019201"}
+options2: dict[str, int] = {"count":2 , "total":10}
+goods2: tuple[str, int, int] = ("手机", 6999, 1)
+
+
+phones2.add(123123123)
+
+options2.update({"sxxxxx":"asdasd" , "1233333":"sadasdasd"})
+
+names2.append("asd")
+
+
+
+
+
+
+### 函数类型注解
+
+def circle_area_len(r:int)->tuple[float,float]:
+    return round(3.14 * r * r,1) ,round(2*3.14 * 4 ,1)
+
+al = circle_area_len(10)
+print(al)
+
+
+
+def calc_order_cost(*args:tuple[str,float,int],coupon:int=0,score:int=0,express:float=0.0)->float:
+    """
+    用于根据传入的一批商品信息（商品名、价格、数量）、优惠（优惠券、积分抵扣）、运费信息计算订单的总金额。
+    :param args: 商品信息（商品名、价格、数量）
+    :param coupon: 优惠券
+    :param score: 积分抵扣
+    :param express: 运费信息
+    :return:
+    """
+    # 订单的总金额 = 商品总金额 - 优惠券 - 积分抵扣 + 运费
+    # #1.计算商品总金额
+    total_price = [goods[1] * goods[2] for goods in args]
+    total_cost = sum(total_price)
+
+    #2.扣减优惠券
+
+    if total_cost >= 5000 and coupon <= total_cost:
+        total_cost -= coupon
+
+    #3.减扣积分抵扣
+
+    if total_cost >= 5000 and score // 100  <= total_cost:
+        total_cost -= score // 100
+
+
+    #4.添加运费
+
+    total_cost += express
+
+    return total_cost
+
+
+# 测试
+
+
+
+
+print(calc_order_cost(("4090",18888,3),("5090",29999,10),("5080",15999,4)))
+
+
+
+
+```
+
+‍
+
+## python 模块
+
+Python模块(module)：一个`·py`文件就是一个模块，模块是Python程序的基本组织单位。在模块中可以定义变量、函数、类，以及可执行的代码。
+
+‍
+
+circle_fun.py 自定义模块
+
+```python
+#根据半径计算圆的面积
+def circle_area(r):
+    pi = 3.14
+    area = pi * r * r
+    return area
+#根据半径计算圆的周长
+def circle_len(r):
+    pi = 3.14
+    len = 2 * pi * r
+    return len
+```
+
+
+‍
+
+‍
+
+![image.png](https://foss.rzzz.net:443/ob-images/2026/08/11/20260811103430801.png)
+
+‍
+
+‍
+
+### 导入模块
+
+|导入形式|代码样例|调用方式|调用示例|
+| ----------| ----------| ----------| ----------|
+|`import 模块名`|`import random, os`|`模块名.功能名`|`random.randint(10, 100)`|
+|`import 模块名 as 别名`|`import random as rd`|`别名.功能名`|`rd.randint(10, 100)`|
+|`from 模块名 import 功能名`|`from random import randint, choice`|`功能名`|`randint(10, 100)`|
+|`from 模块名 import 功能名 as 别名`|`from random import randint as rint`|`别名`|`rint(10, 100)`|
+|`from 模块名 import *`|`from random import *`|`功能名`|`randint(10, 100)`|
+
+![image.png](https://foss.rzzz.net:443/ob-images/2026/08/11/20260811103607928.png)
+
+‍
+
+**小结**
+
+1. 什么是模块？有什么用？
+
+   - 模块：就是一个python文件(.py)，其中就包含了变量、函数、类，以及可执行的代码。
+   - 作用：提高代码复用性，降低开发门槛
+2. 导入模块的常用语法？
+
+   - `import 模块名 [as 别名]`
+   - `from 模块名 import 功能名 [as 别名]`
+   - `from 模块名 import *`
+
+‍
+
+‍
+
+### 自定义模块
+
+当开发一些复杂的项目，为了让项目结构更清晰，更便于项目的维护管理及代码的复用，可能会把一个项目拆分为若千个模块。
+
+‍
+
+![image.png](https://foss.rzzz.net:443/ob-images/2026/08/11/20260811104940744.png)
+
+注意：每一个python文件都可以作为一个模块，模块的名字就是文件的名字（建议使用python标识符定义，规范命名）。
+
+‍
+
+`__all__`​是一个模块级别的特殊变量，用于指定 from 模块名 import ★时会导入哪些功能( ***通配了哪些功能**)。
+
+![image.png](https://foss.rzzz.net:443/ob-images/2026/08/11/20260811110324221.png)
+
+‍
+
+```python
+
+##__all__ 指定 from .. import * 导入的是哪业力能
+__all__ = ["log_separator1", "log_separator2", "log_separator3", "log_separator4"]
+
+#常量（不会发生变化的数据;常量的名称为全部大写）
+
+PI = 3.1415926
+NAME = "黑马☆涛哥"
+
+# 函数
+def log_separator1():
+    print("- " * 30)
+def log_separator2():
+    print("+ " * 30)
+def log_separator3():
+    print("# " * 30)
+def log_separator4():
+    print("* " * 30)
+
+
+# 测试函数
+#__name__：Python中内置变量，表示的当前模块的名字（直接运行当前模块，__name__的值为"__main__"；当该模块被导入时，__name__的值就是模块名
+
+#执行当前文件，则会执行如下代码；如果被当做模块导入，如下代码不执行；
+if __name__ == '__main__':
+     log_separator1()
+```
+
+‍
+
+```python
+#import my_fun
+from 第二章.module02 import my_fun
+
+#导入自定义模块中的功能
+#from my_fun import log_separator1,log_separator3,PI,NAME
+
+from my_fun import *
+
+# print(my_fun.PI)
+# print(my_fun.NAME)
+#
+# my_fun.log_separator1()
+#
+# my_fun.log_separator2()
+#
+# my_fun.log_separator3()
+#
+# my_fun.log_separator4()
+
+
+
+
+#使用模块中的功能
+print(PI)
+print(NAME)
+log_separator1()
+log_separator3()
+```
+
+![image.png](https://foss.rzzz.net:443/ob-images/2026/08/11/20260811110614871.png)
+
+‍
+
+**小结**
+
+1. `__name__`​ 与 `__all__` 这两个特殊变量的作用是什么？
+
+   - `__name__` 是Python中非常重要的内置变量，表示的是当前模块的名称
+
+     - 当模块直接运行时：`__name__`​的值为"`__main__`​"（`if __name__ == "__main__"`）
+     - 当模块被导入时：`__name__`等于模块的文件名（不含.py后缀）
+   - `__all__`​：控制 `import *` 时导入哪些功能
+
+‍
+
+‍
+
+### 软件包（package）
+
+包：本质就是一个文件夹，该文件夹中可以包含若干python模块（.py文件），文件夹下还包含了一个`__init__·py`。
+
+作用：模块文件较多时，用来管理多个模块。（包的本质也是一个模块）
+
+‍
+
+‍
+
+![image.png](https://foss.rzzz.net:443/ob-images/2026/08/11/20260811111039826.png)
+
+‍
+
+|导入形式|代码样例|调用方式|调用示例|
+| ----------| ----------| ----------| ----------|
+|`import 包名.模块名`|`import utils.my_fun`|`包名.模块名.功能名`|`utils.my_fun.log_separator1()`|
+|`from 包名 import 模块名`|`from utils import my_fun`|`模块名.功能名`|`my_fun.log_separator1()`|
+|`from 包名 import *`|`from utils import *`|`模块名.功能名`|`my_fun.log_separator1()`|
+|`from 包名.模块名 import 功能名`|`from utils.my_fun import log_separator1`|`功能名`|`log_separator1()`|
+|`from 包名.模块名 import *`|`from utils.my_fun import *`|`功能名`|`log_separator1()`|
+
+‍
+
+```python
+# 描述 __init__.py
+
+__all__ = ["my_fun","my_var"]
+__version__ = "0.1.0"
+
+__author__ = "xinxin"
+
+
+```
+
+‍
+
+‍
+
+```python
+# my_fun.py
+##__all__ 指定 from .. import * 导入的是哪业力能
+__all__ = ["log_separator1", "log_separator2", "log_separator3", "log_separator4"]
+
+# 函数
+def log_separator1():
+    print("- " * 30)
+def log_separator2():
+    print("+ " * 30)
+def log_separator3():
+    print("# " * 30)
+def log_separator4():
+    print("* " * 30)
+
+
+# 测试函数
+#__name__：Python中内置变量，表示的当前模块的名字（直接运行当前模块，__name__的值为"__main__"；当该模块被导入时，__name__的值就是模块名
+
+#执行当前文件，则会执行如下代码；如果被当做模块导入，如下代码不执行；
+if __name__ == '__main__':
+     log_separator1()
+```
+
+‍
+
+‍
+
+```python
+# my_var.py
+#常量（不会发生变化的数据;常量的名称为全部大写）
+
+PI = 3.1415926
+NAME = "黑马☆涛哥"
+```
+
+‍
+
+小结
+
+1. **什么是包？有什么作用？**
+
+   - 包就是一个文件夹，里面可以存储很多Python模块（py文件），通过包可以对模块进行归类
+2. **​`__init__.py`​**​**文件的作用？**
+
+   - 标识这是一个包，而不是普通的文件夹
+   - 控制在 `import *`​ 时导入的模块列表（`__all__` 变量）
+3. **导入包的方式？**
+
+   - `import 包名.模块名`
+   - `from 包名 import 模块名`
+   - `from 包名 import *`
+   - `from 包名.模块名 import 功能名`
+   - `from 包名.模块名 import *`
+
 ## 面向对象基础
+
+‍

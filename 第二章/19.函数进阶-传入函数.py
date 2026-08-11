@@ -93,3 +93,44 @@ print(calc(3))
 - 积分抵扣需要商品总金额满5000才可以使用，100积分抵扣1元（且抵扣金额不能超过商品总价，积分只能整百抵扣）。
 """
 
+def calc_order_cost(*args,coupon=0,score=0,express=0.0):
+    """
+    用于根据传入的一批商品信息（商品名、价格、数量）、优惠（优惠券、积分抵扣）、运费信息计算订单的总金额。
+    :param args: 商品信息（商品名、价格、数量）
+    :param coupon: 优惠券
+    :param score: 积分抵扣
+    :param express: 运费信息
+    :return:
+    """
+    # 订单的总金额 = 商品总金额 - 优惠券 - 积分抵扣 + 运费
+    # #1.计算商品总金额
+    total_price = [goods[1] * goods[2] for goods in args]
+    total_cost = sum(total_price)
+
+    #2.扣减优惠券
+
+    if total_cost >= 5000 and coupon <= total_cost:
+        total_cost -= coupon
+
+    #3.减扣积分抵扣
+
+    if total_cost >= 5000 and score // 100  <= total_cost:
+        total_cost -= score // 100
+
+
+    #4.添加运费
+
+    total_cost += express
+
+    return total_cost
+
+
+# 测试
+
+
+
+
+print(calc_order_cost(("4090",18888,3),("5090",29999,10),("5080",15999,4)))
+
+
+print(calc_order_cost(("4090",18888,3),("5090",29999,10),("5080",15999,4),coupon=500,score=5000,express=50))
