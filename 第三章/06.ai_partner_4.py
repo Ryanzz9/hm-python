@@ -4,6 +4,7 @@ from datetime import datetime
 import streamlit as st
 import os
 from openai import OpenAI
+from pandas.core import col
 
 # 设置页面的配置项
 
@@ -50,6 +51,18 @@ def save_session():
 
        with open(f"sessions/{st.session_state.current_session}.json", "w",encoding="utf-8") as f:
             json.dump(session_data,f,ensure_ascii=False,indent=2)
+
+
+# 加载所有的会话列表信息
+def load_sessions():
+    session_list = []
+    if os.path.exists("sessions"):
+        file_list = os.listdir("sessions")
+        for filename in file_list:
+            if filename.endswith(".json"):
+                session_list.append(filename[:-5])
+    return session_list
+
 
 
 # 大标题
@@ -129,6 +142,23 @@ with st.sidebar:
           save_session()
           st.rerun() # 重新运行页面
 
+    # 历史会话
+    st.text("历史会话")
+    session_list = load_sessions()
+    for session in session_list:
+        col1,col2 = st.columns([5,1])
+        with col1:
+            #加载会话信息
+            if st.button(session,width="stretch",icon="📄",key=f"load_{session}"):
+               pass
+        with col2:
+            #删除会话
+            if st.button("",width="stretch",icon="❌",key=f"delete_{session}"):
+               pass
+        # st.button(session,width="stretch",icon="📄")
+        # st
+# 每个按钮都得有一个唯一标识
+#·第二个按钮: st.button(""， …)所有删除按钮都用空字符串"”作为label，Streamlit 会认为它们是“相同元素”，从而报错StreamlitDuplicateElementId.
 
     st.subheader("伴侣信息")
     # 昵称输入框
