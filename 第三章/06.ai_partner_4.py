@@ -54,7 +54,7 @@ def save_session():
 
 
 # 加载所有的会话列表信息
-def load_sessions():
+def load_all_sessions():
     session_list = []
     if os.path.exists("sessions"):
         file_list = os.listdir("sessions")
@@ -63,11 +63,27 @@ def load_sessions():
                 session_list.append(filename[:-5])
     return session_list
 
+# 加载指定的会话
 
+def load_session(session_name):
+    try:
+        if os.path.exists(f"sessions/{session_name}.json"):
+            # 读取会话数据
+            with open(f"sessions/{session_name}.json", "r", encoding="utf-8") as f:
+                session_data = json.load(f)
+                st.session_state.messages = session_data["messages"]
+                st.session_state.nick_name = session_data["nick_name"]
+                st.session_state.nature = session_data["nature"]
+                st.session_state.current_session = session_name
+    except Exception as e:
+        st.error(f"加载会话失败！ {session_name}: {e}")
 
 # 大标题
 
 st.title("AI智能伴侣")
+
+#展示聊天信息
+
 
 # Logo
 st.logo("./20260716170506_152_27.jpg")
@@ -109,6 +125,8 @@ if "nature" not in st.session_state:
 if "current_session" not in st.session_state:
    st.session_state.current_session = generate_session_id()
 
+st.text(f"会话名称： {st.session_state.current_session}")
+
 
 
 # 展示聊天信息
@@ -144,13 +162,14 @@ with st.sidebar:
 
     # 历史会话
     st.text("历史会话")
-    session_list = load_sessions()
+    session_list = load_all_sessions()
     for session in session_list:
         col1,col2 = st.columns([5,1])
         with col1:
             #加载会话信息
-            if st.button(session,width="stretch",icon="📄",key=f"load_{session}"):
-               pass
+            if st.button(session,width="stretch",icon="📄",key=f"load_{session}",type="primary" if session == st.session_state.current_session else "secondary"):
+               load_session(session)
+               st.rerun() # 重新运行页面
         with col2:
             #删除会话
             if st.button("",width="stretch",icon="❌",key=f"delete_{session}"):
@@ -209,3 +228,7 @@ if prompt: # 字符串会自动转换为布尔值，如果字符串非空，则�
             full_response += content
             response_message.chat_message("assistant").write(full_response)
     st.session_state.messages.append({"role": "assistant", "content": full_response})
+
+
+    # 大模型相应完就保存会话信息到文件
+    save_session()
