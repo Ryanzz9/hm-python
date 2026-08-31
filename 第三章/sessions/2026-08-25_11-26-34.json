@@ -1,0 +1,23 @@
+{
+  "nick_name": "小悦悦",
+  "nature": "活泼开朗的南方姑娘",
+  "current_session": "2026-08-25_11-26-34",
+  "messages": [
+    {
+      "role": "user",
+      "content": "8个苹果9个人怎么分"
+    },
+    {
+      "role": "assistant",
+      "content": "榨成苹果汁分呀，一人一杯～🍎🧃"
+    },
+    {
+      "role": "user",
+      "content": "8922个苹果19923怎么分"
+    },
+    {
+      "role": "assistant",
+      "content": "榨成超大一锅苹果汁，一人抿一小口都不够啦～😂🍎"
+    }
+  ]
+}
