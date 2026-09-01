@@ -1,3 +1,5 @@
+from lxml import html
+
 import requests
 
 
@@ -11,7 +13,26 @@ response = requests.get(target_url)
 
 #输出数据到控制台
 
-print(response.text)
+# print(response.text)
+
+
+document = html.fromstring(response.text)
+
+# 解析数据
+# 解析表头
+
+# th_list = document.xpath("//table[@id='top20']/thead/tr/th/text()")
+# th_list = document.xpath("/html/body/section/div/article/table[1]/thead/tr/th/text()")
+# th_list = document.xpath("//*[@id='top20']/thead/tr/th/text()")
+
+th_list = document.xpath("//table[@id='top20']/thead/tr/th/text()")
+print(th_list)
 
 
 
+tr_list = document.xpath("//table[@id='top20']/tbody/tr")
+print(tr_list)
+
+for tr in tr_list:
+    td_list = tr.xpath("./td/text()")
+    print(td_list)
