@@ -5,7 +5,8 @@ from lxml import html
 
 # 常量
 TMDB_BASE_URL = "https://www.themoviedb.org"
-TMDB_TOP_URL = "https://www.themoviedb.org/movie/top-rated"
+TMDB_TOP_URL_1 = "https://www.themoviedb.org/movie/top-rated" # 高分电影榜单的url(第1页)
+TMDB_TOP_URL_2 = "https://www.themoviedb.org/discover/movie/items"# 高分电影榜单的url(l第2页之后)
 MOVIE_LIST_FILE = "csv_data/movie_list.csv"
 
 # 获取电影详情
@@ -64,42 +65,53 @@ def save_all_movies(all_movies):
 
 
 def main():
-    # 1.发送请求，获取高分电影榜单数据
-    response = requests.get(TMDB_TOP_URL, timeout=60)
-    print("发送请求，获取TMDB电影榜单数据...")
-    print("状态码：", response.status_code)          # 看看是否是 200
-    print("页面长度：", len(response.text))          # 正常应该在几十KB以上
+    all_movies = [] # #保存所有的电影数据
+    # 循环获取电影列表(第1页到第5页)
+    for page_num in range(1,6):
+        # 1.发送请求，获取高分电影榜单数据
+        if page_num == 1:
+            response = requests.get(TMDB_TOP_URL_1, timeout=60)
+            print(f"发送请求，获取第{page_num}页，TMDB电影榜单数据...")
+            print("状态码：", response.status_code)  # 看看是否是 200
+            print("页面长度：", len(response.text))  # 正常应该在几十KB以上
+        else:
+            response = requests.post(TMDB_TOP_URL_2,f"air_date.gte=&air_date.lte=&certification=&certification_country=CN&debug=&first_air_date.gte=&first_air_date.lte=&include_adult=false&include_softcore=false&latest_ceremony.gte=&latest_ceremony.lte=&page={page_num}&primary_release_date.gte=&primary_release_date.lte=&region=&release_date.gte=&release_date.lte=2027-03-02&show_me=everything&sort_by=vote_average.desc&vote_average.gte=0&vote_average.lte=10&vote_count.gte=300&watch_region=CN&with_genres=&with_keywords=&with_networks=&with_origin_country=&with_original_language=&with_watch_monetization_types=&with_watch_providers=&with_release_type=&with_runtime.gte=0&with_runtime.lte=400",timeout = 60)
+            print(f"发送请求，获取第{page_num}页，TMDB电影榜单数据...")
+            print("状态码：", response.status_code)  # 看看是否是 200
+            print("页面长度：", len(response.text))  # 正常应该在几十KB以上
 
+        # 2.解析数据，获取电影列表
+        document = html.fromstring(response.text)
+        # movie_list = document.xpath("//*[@id='cmp-8abef15b']/div[@class='media-list-results contents']/div")
+        movie_list = document.xpath("//*[@class='flex w-full']")
+        # //*[@id="page_1"]
+        # //*[@id="628fe935df86a85085fe84a4"]
+        # //*[@id="cmp-8abef15b"]/div
 
-    #2.解析数据，获取电影列表
-    document = html.fromstring(response.text)
-    #movie_list = document.xpath("//*[@id='cmp-8abef15b']/div[@class='media-list-results contents']/div")
-    movie_list = document.xpath("//*[@class='flex w-full']")
-    # //*[@id="page_1"]
-    # //*[@id="628fe935df86a85085fe84a4"]
-    # //*[@id="cmp-8abef15b"]/div
+        print("找到的电影数：", len(movie_list))
+        # print(movie_list)
 
-    print("找到的电影卡片数：", len(movie_list))
-    #print(movie_list)
+        # 3.遍历电影列表，获取电影详情
+        for movie in movie_list:
+            movie_urls = movie.xpath("./@href")
+            if movie_urls:
+                # print(f"路径：{movie_urls}")
+                # 电影详情的url
+                movie_info_url = TMDB_BASE_URL + movie_urls[0]
+                # print(f"url: {movie_info_url}")
 
-    #3.遍历电影列表，获取电影详情
-    all_movies = []
-    for movie in movie_list:
-        movie_urls = movie.xpath("./@href")
-        if movie_urls:
-           #print(f"路径：{movie_urls}")
-    # 电影详情的url
-           movie_info_url = TMDB_BASE_URL + movie_urls[0]
-           #print(f"url: {movie_info_url}")
-
-           # 发送请求，获取电影详情数据
-           movie_info = get_movie_info(movie_info_url)
-           all_movies.append(movie_info)
-           #print(all_movies)
+                # 发送请求，获取电影详情数据
+                movie_info = get_movie_info(movie_info_url)
+                all_movies.append(movie_info)
+                # print(all_movies)
 
     # 4.保存数据，保存为 csv文件
     print("获取到所有的电影详情，保存电影数据到CSV文件...")
     save_all_movies(all_movies)
+
+
+
+
 
 if __name__ == '__main__':
    main()
