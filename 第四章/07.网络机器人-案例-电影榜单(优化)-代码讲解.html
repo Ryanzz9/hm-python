@@ -1,0 +1,439 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>电影榜单爬虫（优化版）代码讲解 · TMDB Top Movies</title>
+<style>
+  :root{
+    --bg:#0a0f1e;
+    --bg2:#0e1526;
+    --card:#141d33;
+    --card2:#1a2540;
+    --line:#263358;
+    --txt:#dbe4f5;
+    --mut:#8fa0c0;
+    --gold:#f5c542;
+    --cyan:#4dd0e1;
+    --green:#6fe3a1;
+    --red:#ff7b8a;
+    --code-bg:#0b1020;
+  }
+  *{margin:0;padding:0;box-sizing:border-box;}
+  html{scroll-behavior:smooth;}
+  body{
+    font-family:'Microsoft YaHei','PingFang SC','Segoe UI',Arial,sans-serif;
+    background:linear-gradient(180deg,#0a0f1e 0%,#0c1222 40%,#0a0f1e 100%);
+    color:var(--txt);line-height:1.75;min-height:100vh;
+  }
+  ::selection{background:rgba(245,197,66,.35);}
+
+  /* ===== Hero ===== */
+  header.hero{
+    background:
+      radial-gradient(900px 320px at 15% -10%, rgba(77,208,225,.18), transparent 60%),
+      radial-gradient(800px 360px at 90% -20%, rgba(245,197,66,.16), transparent 55%),
+      linear-gradient(180deg,#0d1526,#0a0f1e);
+    border-bottom:1px solid var(--line);
+    padding:56px 24px 44px;text-align:center;position:relative;overflow:hidden;
+  }
+  .hero .tag{
+    display:inline-block;border:1px solid rgba(245,197,66,.5);color:var(--gold);
+    font-size:13px;letter-spacing:3px;padding:5px 16px;border-radius:999px;margin-bottom:18px;
+  }
+  .hero h1{font-size:clamp(26px,4vw,44px);font-weight:800;letter-spacing:2px;}
+  .hero h1 em{color:var(--gold);font-style:normal;}
+  .hero p.sub{margin-top:14px;color:var(--mut);font-size:15px;max-width:760px;margin-inline:auto;}
+  .hero .facts{margin-top:26px;display:flex;gap:14px;justify-content:center;flex-wrap:wrap;}
+  .hero .fact{
+    background:rgba(20,29,51,.8);border:1px solid var(--line);border-radius:12px;
+    padding:10px 18px;font-size:14px;
+  }
+  .hero .fact b{color:var(--cyan);}
+
+  /* ===== Layout ===== */
+  .wrap{max-width:1060px;margin:0 auto;padding:30px 20px 70px;}
+  nav.toc{
+    position:sticky;top:0;z-index:50;background:rgba(10,15,30,.92);
+    backdrop-filter:blur(10px);border-bottom:1px solid var(--line);
+  }
+  nav.toc ul{max-width:1060px;margin:0 auto;display:flex;gap:4px;overflow-x:auto;list-style:none;padding:8px 16px;font-size:14px;}
+  nav.toc a{color:var(--mut);text-decoration:none;white-space:nowrap;padding:6px 12px;border-radius:8px;transition:.2s;}
+  nav.toc a:hover{color:var(--gold);background:rgba(245,197,66,.08);}
+
+  section{margin-top:52px;}
+  h2{
+    font-size:24px;font-weight:800;margin-bottom:6px;color:#fff;
+    display:flex;align-items:center;gap:12px;
+  }
+  h2 .no{
+    display:inline-flex;align-items:center;justify-content:center;
+    width:38px;height:38px;border-radius:10px;flex:0 0 auto;
+    background:linear-gradient(135deg,var(--gold),#e0962f);color:#1a1400;font-size:17px;font-weight:900;
+  }
+  h2 small{font-size:13px;color:var(--mut);font-weight:400;letter-spacing:1px;}
+  .lead{color:var(--mut);margin:8px 0 22px;font-size:15px;}
+  h3{margin:28px 0 10px;font-size:18px;color:var(--cyan);}
+  h4{margin:18px 0 6px;font-size:15px;color:var(--gold);}
+
+  .card{
+    background:var(--card);border:1px solid var(--line);border-radius:16px;
+    padding:22px 24px;margin:16px 0;
+  }
+  .grid2{display:grid;grid-template-columns:1fr 1fr;gap:16px;}
+  @media(max-width:820px){.grid2{grid-template-columns:1fr;}}
+
+  ul.tips,ol.tips{padding-left:22px;}
+  ul.tips li,ol.tips li{margin:7px 0;}
+  ul.tips li::marker{color:var(--gold);}
+  p+p{margin-top:10px;}
+  code.inline{
+    background:rgba(77,208,225,.12);color:#9feef7;border:1px solid rgba(77,208,225,.25);
+    padding:1px 7px;border-radius:6px;font-family:Consolas,Menlo,monospace;font-size:.9em;
+  }
+  .note{
+    border-left:4px solid var(--gold);background:rgba(245,197,66,.07);
+    padding:12px 16px;border-radius:0 10px 10px 0;margin:16px 0;font-size:14px;
+  }
+  .note.warn{border-color:var(--red);background:rgba(255,123,138,.07);}
+  .note.info{border-color:var(--cyan);background:rgba(77,208,225,.07);}
+
+  /* ===== Code ===== */
+  pre.code{
+    position:relative;background:var(--code-bg);border:1px solid var(--line);
+    border-radius:12px;padding:18px 18px;margin:14px 0;overflow-x:auto;
+  }
+  pre.code code{font-family:Consolas,'Courier New',monospace;font-size:13.5px;line-height:1.7;color:#d7e3ff;display:block;}
+  pre.code .tag-flag{
+    position:absolute;top:-11px;right:14px;font-size:11px;letter-spacing:1px;color:#9aa;
+    background:var(--code-bg);border:1px solid var(--line);padding:2px 10px;border-radius:999px;
+  }
+  .tok-kw{color:#ff7edb;font-weight:600;}
+  .tok-str{color:#7ee787;}
+  .tok-cmt{color:#5d6f96;font-style:italic;}
+  .tok-num{color:#79c0ff;}
+  .tok-fn{color:#d2a8ff;}
+
+  /* ===== Flow ===== */
+  .flow{display:flex;align-items:stretch;gap:0;flex-wrap:wrap;justify-content:center;margin:20px 0;}
+  .step{flex:1 1 170px;max-width:230px;background:var(--card2);border:1px solid var(--line);border-radius:14px;padding:16px 14px;text-align:center;position:relative;margin:8px;}
+  .step .ic{font-size:26px;line-height:1;}
+  .step .st{display:inline-block;font-size:11px;color:#0a0f1e;background:var(--gold);border-radius:999px;padding:1px 9px;margin-bottom:8px;font-weight:800;}
+  .step .t{font-weight:700;font-size:15px;}
+  .step .d{font-size:12.5px;color:var(--mut);margin-top:5px;}
+  .step .badge{display:block;margin-top:8px;font-size:11px;color:var(--cyan);}
+
+  /* ===== Table ===== */
+  table.tbl{width:100%;border-collapse:collapse;font-size:13.5px;margin:14px 0;}
+  table.tbl th,table.tbl td{border:1px solid var(--line);padding:8px 12px;text-align:left;vertical-align:top;}
+  table.tbl th{background:var(--card2);color:var(--gold);font-weight:700;}
+  table.tbl tr:nth-child(even) td{background:rgba(255,255,255,.02);}
+  table.tbl .del{color:var(--red);}
+  table.tbl .new{color:var(--green);}
+
+  .arrow-down{text-align:center;font-size:20px;color:var(--gold);}
+  footer{margin-top:70px;padding:26px;text-align:center;color:var(--mut);font-size:13px;border-top:1px solid var(--line);}
+  .back-top{position:fixed;right:22px;bottom:22px;background:var(--gold);color:#1a1400;border:none;border-radius:999px;padding:10px 16px;font-weight:700;cursor:pointer;box-shadow:0 4px 16px rgba(245,197,66,.3);display:none;}
+  @media print{nav.toc,.back-top{display:none;}}
+</style>
+</head>
+<body>
+
+<header class="hero">
+  <span class="tag">PYTHON · 网络爬虫教学案例</span>
+  <h1>电影榜单爬虫（<em>优化版</em>）代码讲解</h1>
+  <p class="sub">以 TMDB「高分电影 Top 榜单」为例，逐函数拆解 <code class="inline">07.网络机器人-案例-电影榜单(优化).py</code>：请求 → XPath 解析 → <b>正则数据清洗</b> → CSV 落盘，并对照早期版本说明“优化”到底优化了什么。</p>
+  <div class="facts">
+    <div class="fact">源文件：<b>07.网络机器人-案例-电影榜单(优化).py</b></div>
+    <div class="fact">语言/依赖：<b>Python · requests · lxml · re · csv</b></div>
+    <div class="fact">采集范围：<b>高分榜单第 1 ~ 5 页</b></div>
+    <div class="fact">输出：<b>csv_data/movie_list2.csv</b></div>
+  </div>
+</header>
+
+<nav class="toc">
+  <ul>
+    <li><a href="#s1">① 优化总览</a></li>
+    <li><a href="#s2">② 执行流程</a></li>
+    <li><a href="#s3">③ 常量与准备</a></li>
+    <li><a href="#s4">④ 数据清洗“三剑客”</a></li>
+    <li><a href="#s5">⑤ 详情页抓取</a></li>
+    <li><a href="#s6">⑥ CSV 保存</a></li>
+    <li><a href="#s7">⑦ 主流程 main</a></li>
+    <li><a href="#s8">⑧ 隐藏的坑</a></li>
+    <li><a href="#s9">⑨ 还能怎么改</a></li>
+  </ul>
+</nav>
+
+<div class="wrap">
+
+  <!-- ============ 1 ============ -->
+  <section id="s1">
+    <h2><span class="no">1</span>这一版“优化”了什么？<small>对比早期 05 版</small></h2>
+    <p class="lead">05 版直接把网页文本原样入库；07 版在入库前对字段做了<b>“规范化清洗”</b>，核心手段是 <code class="inline">正则表达式 re</code>。先看两份真实运行结果（均来自程序抓取的 csv_data）：</p>
+
+    <h3>同一部电影：05 版 vs 07 版的数据差异</h3>
+    <table class="tbl">
+      <tr><th>字段</th><th>05 版（原样抓取）</th><th>07 版（优化后）</th><th>做了什么</th></tr>
+      <tr><td>年份</td><td class="del">(2026)</td><td class="new">2026</td><td>去掉括号，还原为纯数字</td></tr>
+      <tr><td>上映日期</td><td class="del">2026/07/24 (US)</td><td class="new">2026-07-24</td><td>正则只保留 <code class="inline">YYYY-MM-DD</code></td></tr>
+      <tr><td>时长</td><td class="del">1h 39m</td><td class="new">99</td><td>统一换算为<b>分钟</b>，可排序可求均值</td></tr>
+      <tr><td>标签</td><td colspan="2">动画,动作,冒险,奇幻</td><td>列表 → 逗号拼接（两版一致）</td></tr>
+    </table>
+
+    <h3>优化版 CSV 的真实预览（前 5 行）</h3>
+    <table class="tbl">
+      <tr><th>电影名</th><th>年份</th><th>上映日期</th><th>时长(min)</th><th>评分</th><th>导演</th></tr>
+      <tr><td>安昂传奇：最后的气宗</td><td>2026</td><td>2026-07-24</td><td>99</td><td>92</td><td>Tim Hedrick</td></tr>
+      <tr><td>不期而遇的姐妹</td><td>2026</td><td>2026-03-12</td><td>85</td><td>89</td><td>Ihtzi Hurtado</td></tr>
+      <tr><td>奇幻变身大冒险</td><td>2026</td><td>2026-05-01</td><td>102</td><td>89</td><td>内森·格雷诺</td></tr>
+      <tr><td>夜巡毒枭</td><td>2026</td><td>2026-08-21</td><td>91</td><td>88</td><td>Chava Cartas</td></tr>
+      <tr><td>鬼灭之刃：无限城篇 第一章</td><td>2025</td><td>2025-11-14</td><td>155</td><td>88</td><td>外崎春雄</td></tr>
+    </table>
+
+    <div class="note info">
+      <b>观察：</b>两次运行时 TMDB 返回了不同“语言区域”的本地化数据（05 版电影名为英文、语言为繁体“英語”；07 版为简体中文“英语”）。这说明爬虫结果会受到<b>目标站点语言/地区配置</b>的影响——这正是结构化数据需要“按规范清洗”的另一个原因。
+    </div>
+  </section>
+
+  <!-- ============ 2 ============ -->
+  <section id="s2">
+    <h2><span class="no">2</span>程序整体执行流程</h2>
+    <p class="lead">整份代码是一个标准的“采集 → 解析 → 清洗 → 存储”流水线，可复用到任何榜单类网站：</p>
+
+    <div class="flow">
+      <div class="step"><span class="ic">🔁</span><span class="st">STEP 1</span><div class="t">翻页抓榜单</div><div class="d">第1页 GET，第2~5页 POST 表单</div><div class="badge">main() · range(1,6)</div></div>
+      <div class="step"><span class="ic">🌲</span><span class="st">STEP 2</span><div class="t">XPath 定位列表</div><div class="d">找到每个电影卡片节点</div><div class="badge">//*[@class='flex w-full']</div></div>
+      <div class="step"><span class="ic">🔗</span><span class="st">STEP 3</span><div class="t">拼详情 URL</div><div class="d">相对路径 + 域名</div><div class="badge">TMDB_BASE_URL + href</div></div>
+      <div class="step"><span class="ic">📄</span><span class="st">STEP 4</span><div class="t">抓详情页</div><div class="d">再发请求，XPath 抽取 11 个字段</div><div class="badge">get_movie_info()</div></div>
+      <div class="step"><span class="ic">🧹</span><span class="st">STEP 5</span><div class="t">字段清洗</div><div class="d">正则去括号 / 抽日期 / 时长换算</div><div class="badge">三个清洗函数 ⭐</div></div>
+      <div class="step"><span class="ic">💾</span><span class="st">STEP 6</span><div class="t">写 CSV</div><div class="d">DictWriter 一次落盘</div><div class="badge">save_all_movies()</div></div>
+    </div>
+
+    <div class="note">
+      <b>设计思想：</b>main 只负责“编排顺序”，采集、清洗、存储各自独立成函数。想换数据源只改函数内部；想换存储格式（Excel/数据库）只改 <code class="inline">save_all_movies</code>。
+    </div>
+  </section>
+
+  <!-- ============ 3 ============ -->
+  <section id="s3">
+    <h2><span class="no">3</span>导入与常量：程序的地基</h2>
+    <pre class="code"><span class="tag-flag">源代码 1-12 行</span><code class="language-python">import re          # 新增！正则清洗的核心工具
+import requests    # 发 HTTP 请求
+import csv         # 写 CSV
+from lxml import html  # 解析 HTML / 支持 XPath
+
+
+# 常量
+TMDB_BASE_URL = "https://www.themoviedb.org"
+TMDB_TOP_URL_1 = "https://www.themoviedb.org/movie/top-rated"        # 榜单第1页
+TMDB_TOP_URL_2 = "https://www.themoviedb.org/discover/movie/items"   # 第2页起的 Ajax 接口
+MOVIE_LIST_FILE = "csv_data/movie_list2.csv"   # 注意：文件名带 2，避免覆盖旧数据</code></pre>
+    <ul class="tips">
+      <li><b>为什么第 1 页和第 2 页是两个 URL？</b> 榜单首页内容直接写在 HTML 里（GET 可得）；翻到第 2 页后，网站是通过浏览器异步提交筛选表单加载的，必须 POST 到 <code class="inline">items</code> 接口并携带 <code class="inline">page</code> 等筛选参数。</li>
+      <li><b>大写下划线命名</b>（全大写常量）集中管理所有 URL 与输出路径，改一处即可，避免“魔法字符串”散落代码。</li>
+      <li>把 URL 分成“域名”和“路径”两部分，是为了后面能方便地做 <code class="inline">域名 + 相对路径</code> 拼接。</li>
+    </ul>
+  </section>
+
+  <!-- ============ 4 ============ -->
+  <section id="s4">
+    <h2><span class="no">4</span>核心优化：数据清洗“三剑客”</h2>
+    <p class="lead">网页上看到的是给人看的文本（<code class="inline">(2026)</code>、<code class="inline">1h 39m</code>、<code class="inline">2026/07/24 (US)</code>），但存进表格时我们希望它是<b>规范、可计算</b>的数据。三个小函数分别解决年份、日期、时长。</p>
+
+    <pre class="code"><span class="tag-flag">源代码 14-31 行</span><code class="language-python"># ① 年份：去掉括号
+def get_movie_year(movie_years):
+    movie_year = movie_years[0].strip() if movie_years else ''
+    return movie_year.replace("(", "").replace(")", "")   # "(2026)" → "2026"
+
+# ② 上映日期：正则抽取纯日期
+def get_movie_publsh_date(movie_dates):
+    movie_date = movie_dates[0].strip() if movie_dates else ''
+    return re.search(r"\d{4}-\d{2}-\d{2}", movie_date).group()   # "...2026-07-24..." → "2026-07-24"
+
+# ③ 时长：统一换算为分钟
+def get_movie_cost_time(movie_cost_times):
+    movie_cost_times = movie_cost_times[0].strip() if movie_cost_times else ''  # "2h 20m" / "40m" / "2h"
+    h_res = re.search(r"(\d+)h", movie_cost_times)
+    m_res = re.search(r"(\d+)m", movie_cost_times)
+    h = int(h_res.group(1)) if h_res else 0
+    m = int(m_res.group(1)) if m_res else 0
+    return h * 60 + m      # "2h 20m" → 2*60+20 = 140</code></pre>
+
+    <h3>逐个拆解</h3>
+    <h4>① get_movie_year —— 清洗不是一定要用正则</h4>
+    <p>年份原文是 <code class="inline">(2026)</code>，只是多了一对括号。杀鸡不必用牛刀，直接用字符串方法 <code class="inline">replace</code> 替换掉左右括号即可，还能链式调用两次。</p>
+
+    <h4>② get_movie_publsh_date —— “匹配并抽取”</h4>
+    <p>正则 <code class="inline">\d{4}-\d{2}-\d{2}</code> 的含义：<b>4 位数字-2 位数字-2 位数字</b>，即 <code class="inline">YYYY-MM-DD</code>。<code class="inline">re.search</code> 在长字符串里“找”第一个匹配，<code class="inline">.group()</code> 取出这段文本——把“带地区后缀的原始日期串”洗成了标准 ISO 日期。</p>
+    <div class="note warn">
+      <b>⚠ 这里有一个潜伏的 Bug：</b>当 <code class="inline">movie_dates</code> 为空或字符串里没有 <code class="inline">YYYY-MM-DD</code> 格式时，<code class="inline">re.search(...)</code> 返回 <code class="inline">None</code>，再调用 <code class="inline">.group()</code> 会直接抛 <code class="inline">AttributeError</code> 中断整个程序——注意 05 版这里是有兜底（空则给 <code class="inline">''</code>）的，07 版反而“退步”了。正确的写法是先用 <code class="inline">result = re.search(...)</code>，再判断 <code class="inline">if result</code>。
+    </div>
+
+    <h4>③ get_movie_cost_time —— 最有价值的规范化</h4>
+    <p>网页时长有 <code class="inline">2h 20m</code>、<code class="inline">40m</code>、<code class="inline">2h</code> 三种形态，没法比较大小。解决办法：</p>
+    <ul class="tips">
+      <li>用两个带<b>分组括号</b>的正则分别抠出小时数和分钟数：<code class="inline">r"(\d+)h"</code>、<code class="inline">r"(\d+)m"</code>。</li>
+      <li><code class="inline">int(h_res.group(1)) if h_res else 0</code> —— 匹配不到就按 0 处理。这个<b>“匹配失败给默认值”</b>的写法，优雅地兼容了三种形态，是整个函数健壮性的关键。</li>
+      <li>统一换算成分钟整数后，CSV 里的时长就能直接排序、算平均、画图表了。</li>
+    </ul>
+  </section>
+
+  <!-- ============ 5 ============ -->
+  <section id="s5">
+    <h2><span class="no">5</span>get_movie_info：详情页抓取与字段拼装</h2>
+    <pre class="code"><span class="tag-flag">源代码 44-78 行（节选）</span><code class="language-python">movie_names   = movie_doc.xpath("//*[@id='original_header']/div[2]/section/div[1]/h2/a/text()")
+movie_years   = movie_doc.xpath("//*[@id='original_header']/div[2]/section/div[1]/h2/span/text()")
+movie_dates   = movie_doc.xpath("//*[@id='original_header']/div[2]/section/div[1]/div/span[@class='release']/text()")
+movie_tags    = movie_doc.xpath("//*[@id='original_header']/div[2]/section/div[1]/div/span[@class='genres']/a/text()")
+movie_cost_times = movie_doc.xpath(".../span[@class='runtime']/text()")
+movie_scores  = movie_doc.xpath("//*[@id='consensus_pill']/div/div[1]/div/div/@data-percent")
+movie_directors = movie_doc.xpath(".../ol/li[1]/p[1]/a/text()")
+# ……共 11 个字段，思路完全一致
+
+moive_info = {
+    "电影名": movie_names[0].strip() if movie_names else '',
+    "年份":   get_movie_year(movie_years),          # ← 交给清洗函数
+    "上映日期": get_movie_publsh_date(movie_dates),  # ← 交给清洗函数
+    "标签":   ",".join(movie_tags) if movie_tags else '',
+    "时长":   get_movie_cost_time(movie_cost_times), # ← 交给清洗函数
+    "评分":   movie_scores[0].strip() if movie_scores else '',
+    # ……语言 / 导演 / 作者 / 宣传语 / 简介 同 05 版
+}
+return moive_info</code></pre>
+    <ul class="tips">
+      <li><b>XPath 是“看浏览器复制的绝对路径”</b>（<code class="inline">//*[@id='original_header']/div[2]/…</code>），命中率高但非常脆弱——网站改一次版就要重新复制。教学场景没问题，工程上建议改用更稳定的 class / 语义锚点。</li>
+      <li><b>防御式取值：</b><code class="inline">x[0].strip() if x else ''</code> —— XPath 抽不到时返回空列表，直接 <code class="inline">x[0]</code> 会 <code class="inline">IndexError</code>；给默认空字符串保证“缺字段不崩、整行不丢”。</li>
+      <li><b>多值字段 join：</b>一部电影可以有多个类型标签，XPath 抽回的是列表，必须 <code class="inline">",".join(...)</code> 拼成字符串才能写进 CSV 的一个单元格。</li>
+      <li><b>清洗收口在字典处：</b>凡是需要清洗的字段（年份/日期/时长），在这里统一“转交”给专门的清洗函数，职责单一、便于复用与测试。</li>
+    </ul>
+  </section>
+
+  <!-- ============ 6 ============ -->
+  <section id="s6">
+    <h2><span class="no">6</span>save_all_movies：一次落盘</h2>
+    <pre class="code"><span class="tag-flag">源代码 82-86 行</span><code class="language-python">def save_all_movies(all_movies):
+    with open(MOVIE_LIST_FILE, mode='w', newline='', encoding='utf-8') as csvfile:
+        writer_csv = csv.DictWriter(csvfile,
+            fieldnames=["电影名","年份","上映日期","标签","时长","评分","语言","导演","作者","宣传语","简介"])
+        writer_csv.writeheader()   # 写表头
+        writer_csv.writerows(all_movies)   # 一次写入全部字典行</code></pre>
+    <ul class="tips">
+      <li><code class="inline">csv.DictWriter</code> 与“字典列表”天然匹配：<code class="inline">fieldnames</code> 既是表头，又规定了每行取哪些键、按什么顺序写。</li>
+      <li><b>中文不乱码的两件套：</b><code class="inline">encoding='utf-8'</code> 防乱码；<code class="inline">newline=''</code> 防止 Windows 下每两行之间多一个空行。</li>
+      <li><code class="inline">mode='w'</code> 是“覆盖写”，每次运行都会重生成整份文件（简单但会丢掉历史数据）。</li>
+    </ul>
+  </section>
+
+  <!-- ============ 7 ============ -->
+  <section id="s7">
+    <h2><span class="no">7</span>main：翻页 + 遍历 + 汇总</h2>
+    <pre class="code"><span class="tag-flag">源代码 92-135 行（节选）</span><code class="language-python">def main():
+    all_movies = []   # 汇总容器
+    for page_num in range(1, 6):          # 抓前 5 页
+        # ① 第1页用 GET，第2页起用 POST（模拟浏览器提交筛选表单）
+        if page_num == 1:
+            response = requests.get(TMDB_TOP_URL_1, timeout=60)
+        else:
+            response = requests.post(TMDB_TOP_URL_2,
+                f"air_date.gte=&air_date.lte=&...&page={page_num}&...&sort_by=vote_average.desc&...",
+                timeout=60)
+        print("状态码：", response.status_code)   # 是否 200
+        print("页面长度：", len(response.text))   # 正常应几十 KB 以上
+
+        # ② XPath 定位每部电影的卡片节点
+        document = html.fromstring(response.text)
+        movie_list = document.xpath("//*[@class='flex w-full']")
+        print("找到的电影数：", len(movie_list))
+
+        # ③ 逐个进入详情页
+        for movie in movie_list:
+            movie_urls = movie.xpath("./@href")       # 取相对路径
+            if movie_urls:                            # 过滤无链接的广告等元素
+                movie_info_url = TMDB_BASE_URL + movie_urls[0]   # 拼接完整 URL
+                movie_info = get_movie_info(movie_info_url)      # 抓详情 + 清洗
+                all_movies.append(movie_info)
+
+    # ④ 全部完成后统一保存
+    save_all_movies(all_movies)</code></pre>
+
+    <h3>三个值得品的设计点</h3>
+    <h4>① 翻页 POST 的 f-string 拼参数</h4>
+    <p>第 78/103 行那一大段表单字符串里，唯一变化的是 <code class="inline">page</code>，因此用 <b>f-string</b> 只把页码插进去（<code class="inline">page={page_num}</code>），其余筛选条件（按评分降序 <code class="inline">sort_by=vote_average.desc</code>、投票数≥300 <code class="inline">vote_count.gte=300</code>）原样保留。</p>
+    <h4>② “状态码 + 页面长度”自检日志</h4>
+    <p>注释写着“页面长度正常应该在几十KB以上”——这是爬虫的经典自检手段：<b>200 不等于成功</b>，如果被反爬重定向到验证码页，页面会明显变短。打印出来一眼可辨。</p>
+    <h4>③ if movie_urls 过滤 + 统一 URL 拼接</h4>
+    <p>榜单页的节点不全是电影（可能混入推荐位），用 <code class="inline">if movie_urls:</code> 把没有链接的节点筛掉；详情页返回的是相对路径，所以用常量区的域名补全。</p>
+  </section>
+
+  <!-- ============ 8 ============ -->
+  <section id="s8">
+    <h2><span class="no">8</span>隐藏的坑（学爬虫必踩）</h2>
+    <div class="grid2">
+      <div class="card"><h4>1. re.search 返回 None（已在 4.② 标注）</h4>
+        <p>日期正则匹配不到时空指针崩溃，<b>优化版最大的隐患</b>。修复：先保存结果再判空。</p>
+      </div>
+      <div class="card"><h4>2. csv_data/ 目录必须存在</h4>
+        <p><code class="inline">open()</code> 不会自动创建父目录，目录不存在直接 <code class="inline">FileNotFoundError</code>。可用 <code class="inline">os.makedirs(..., exist_ok=True)</code> 兜底。</p>
+      </div>
+      <div class="card"><h4>3. 没有请求头与延时</h4>
+        <p>没设置 <code class="inline">User-Agent</code>，5 页 × 20 部电影连续快速请求，极易触发限流/封 IP。建议加 headers、每请求间 <code class="inline">time.sleep()</code>。</p>
+      </div>
+      <div class="card"><h4>4. 无异常处理，一崩全丢</h4>
+        <p>任何一部电影请求超时都会中断主流程，已抓数据全部丢失。可用 <code class="inline">try/except</code> + 失败跳过，最后统一保存。</p>
+      </div>
+    </div>
+  </section>
+
+  <!-- ============ 9 ============ -->
+  <section id="s9">
+    <h2><span class="no">9</span>如果继续做下去，还能怎么改</h2>
+    <ul class="tips">
+      <li><b>改用官方 / 免费 API：</b>TMDB 提供公开 API（无需解析 HTML），请求更稳定、字段更干净。这也说明：<b>抓网页是“没有 API 时的退路”</b>，优先找接口。</li>
+      <li><b>引入“解析层重试”</b>：单个字段失败不放弃整条记录，二次 XPath 或备用路径兜底（对应第 5 章里注释掉的备用路径写法）。</li>
+      <li><b>清洗逻辑单元化可测试</b>：把“三剑客”挪到独立模块 + 写断言测试（<code class="inline">2h 20m → 140</code> 这种纯函数最适合）。</li>
+      <li><b>存储升级：</b>追加写入 <code class="inline">mode='a'</code> 保留历史快照；或换成 pandas → Excel / SQLite，便于后续分析“高分电影都出自哪年、哪种类型”。</li>
+      <li><b>并发提速：</b>详情页彼此独立，可用线程池并发抓取，速度提升数倍（注意礼貌限速）。</li>
+    </ul>
+  </section>
+
+</div>
+
+<footer>
+  教学讲义 · 基于 第四章 / 07.网络机器人-案例-电影榜单(优化).py 生成<br>
+  核心思想：请求 → XPath 解析 → 防御性取值 → 正则清洗 → CSV 落盘
+</footer>
+
+<button class="back-top" onclick="window.scrollTo({top:0,behavior:'smooth'})">↑ 顶部</button>
+
+<script>
+/* 轻量 Python 代码高亮：字符串 / 注释 / 关键字 / 数字 / 函数 */
+(function(){
+  function esc(s){
+    return s.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
+  }
+  var RE = new RegExp(
+    '("(?:[^"\\\\\\n]|\\\\.)*"|\'(?:[^\'\\\\\\n]|\\\\.)*\')' +   // 字符串
+    '|(#[^\\n]*)' +                                              // 注释
+    '|\\b(def|import|from|return|if|elif|else|for|while|in|range|len|print|True|False|None|class|lambda|with|as|try|except|finally|raise|and|or|not|is|global)\\b' +
+    '|(\\b\\d+\\b)',
+    'g'
+  );
+  var codes = document.querySelectorAll('pre.code code.language-python');
+  codes.forEach(function(code){
+    var src = esc(code.textContent);
+    code.innerHTML = src.replace(RE, function(m, str, cmt, kw, num){
+      if (str) return '<span class="tok-str">' + str + '</span>';
+      if (cmt) return '<span class="tok-cmt">' + cmt + '</span>';
+      if (kw)  return '<span class="tok-kw">' + kw + '</span>';
+      if (num) return '<span class="tok-num">' + num + '</span>';
+      return m;
+    });
+  });
+})();
+window.addEventListener('scroll', function(){
+  document.querySelector('.back-top').style.display = window.scrollY > 600 ? 'block' : 'none';
+});
+</script>
+</body>
+</html>
