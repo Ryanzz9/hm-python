@@ -1,4 +1,6 @@
 from abc import ABC, abstractmethod
+import json
+
 
 class Book:
     def __init__(self, book_id, title, author, total_num):
@@ -64,7 +66,7 @@ class Member(ABC):
         return self.__borrowed_books
 
     # 获取会员最大借阅数量(需要在子类中实现)
-    @abstractmethod
+    @abstractmethod #标识抽象方法
     def get_max_books(self)->int:
         pass
 
@@ -79,3 +81,38 @@ class VIPMember(Member):
 
     def get_max_books(self) ->int:
         return 6 + self.vip_level
+
+
+class LibrarySystem:
+    def __init__(self):
+        self.books = {} # 图书列表
+        self.members = {} # 会员列表
+        self.current_member: Member | None = None # 当前登录的会员
+        #加载数据（书籍/会员）
+        self.load_books_data()
+        self.load_members_data()
+
+    def load_books_data(self):
+        with open('data/books.json', 'r', encoding='utf-8') as f:
+            books_data = json.load(f)
+        for book in books_data:
+            self.books[book["编号"]] = Book(book["编号"], book["标题"], book["作者"], book["数量"])
+        print(f"加载图书数据成功")
+
+
+
+    def load_members_data(self):
+        with open('data/members.json', 'r', encoding='utf-8') as f:
+            members_data = json.load(f)
+        for member in members_data:
+            if member['卡号'].startswith('N'):
+                self.members[member['卡号']] = NormalMember(member['卡号'], member['姓名'], member['密码'])
+            elif member['卡号'].startswith('V'):
+                self.members[member['卡号']] = VIPMember(member['卡号'], member['姓名'], member['密码'], member['会员等级'])
+        print(f"加载会员数据成功")
+
+
+if __name__ == '__main__':
+    library_system = LibrarySystem()
+    print(library_system.books)
+    print(library_system.members)
