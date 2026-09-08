@@ -1,3 +1,5 @@
+from abc import ABC, abstractmethod
+
 class Book:
     def __init__(self, book_id, title, author, total_num):
         self.book_id = book_id # 图书编号
@@ -20,9 +22,10 @@ class Book:
     def get_available_num(self):
         return self.__available_num
 
-
+# #抽象类：是一种只能被继承，不能被直接实例化的类，作用就是规定子类必须要实现哪些方式，强制子类必须遵守统一的代码规范
+# Python中的抽象类，需要继承 abc 模块中的ABC类 ---> ABC:Abstract Base Class
 # 会员类
-class Member:
+class Member(ABC):
     def __init__(self, member_id, name, password):
         self.member_id = member_id # 会员编号
         self.name = name # 会员姓名
@@ -61,6 +64,7 @@ class Member:
         return self.__borrowed_books
 
     # 获取会员最大借阅数量(需要在子类中实现)
+    @abstractmethod
     def get_max_books(self)->int:
         pass
 
