@@ -100,7 +100,7 @@ class LibrarySystem:
         print(f"加载图书数据成功")
 
 
-
+    # 将 JSON 字典 转换为 会员对象，并存入 self.members
     def load_members_data(self):
         with open('data/members.json', 'r', encoding='utf-8') as f:
             members_data = json.load(f)
@@ -110,9 +110,90 @@ class LibrarySystem:
             elif member['卡号'].startswith('V'):
                 self.members[member['卡号']] = VIPMember(member['卡号'], member['姓名'], member['密码'], member['会员等级'])
         print(f"加载会员数据成功")
+        # self.members 字典中，key 是字符串（member['卡号']，比如 "N001"）
+        # value 是 Member 类型（及其子类）的对象实例
+        # 因为 NormalMember 和 VIPMember 都继承自 Member。
+
+
+
+
+    def login(self):
+        while True:
+            member_id = input("请输入会员卡号：")
+            if member_id not in self.members:
+                print("会员卡号不存在，请重新输入")
+                continue
+            password = input("请输入密码：")
+            if password != self.members[member_id].get_password():
+                print("密码错误，请重新输入")
+                continue
+            self.current_member = self.members[member_id]
+            print(f"登录成功，欢迎{self.current_member.name}")
+            return True
+
+
+    def borrow_book(self):#借阅图书
+        # 1. 展示出当前图书馆的图书列表
+        for book in self.books.values():
+            print(f"编号：{book.book_id}, 标题：{book.title}, 作者：{book.author}, 数量：{book.total_num}, 可用数量：{book.get_available_num()}")
+
+        # 2.获取用户输入的图书编号，执行借书操作
+        book_id = input("请输入要借阅的图书编号：")
+        if book_id not in self.books:
+            print("图书编号不存在，请重新输入")
+            return
+        self.current_member.borrow_book(self.books[book_id])
+        print("借书操作完成")
+
+    def return_book(self):
+    # 1.展示出当前会员的借阅列表
+        borrowed_books = self.current_member.get_borrowed_books()
+        print("【已借阅的图书列表:】")
+        for book in borrowed_books:
+            print(f"编号：{book.book_id}, 标题：{book.title}")
+
+        # 2.获取用户输入的图书编号，执行还书操作
+        book_id = input("请输入图书编号：")
+        if book_id not in self.books:
+            print("图书编号不存在，请重新输入")
+            return
+        self.current_member.return_book(self.books[book_id])
+        print("还书操作完成")
+
+
+    def show_borrowed_books(self):
+        borrowed_books = self.current_member.get_borrowed_books()
+        if len(borrowed_books) > 0:
+            print("【已借阅的图书列表:】")
+            for book  in borrowed_books:
+                print(f"编号：{book.book_id}, 标题：{book.title}")
+        else:
+            print("【提示】当前没有借阅任何图书")
+
+    def run(self):
+        if self.login():
+            while True:
+                print("1. 借阅图书")
+                print("2. 归还图书")
+                print("3. 查看已借阅图书")
+                print("4. 退出系统")
+
+
+                choice = input("请输入你的选择：")
+                match choice:
+                    case "1":
+                        self.borrow_book()
+                    case "2":
+                        self.return_book()
+                    case "3":
+                        self.show_borrowed_books()
+                    case "4":
+                        print("退出系统")
+                        break
+                    case _:
+                        print("无效的选择，请重新输入")
 
 
 if __name__ == '__main__':
     library_system = LibrarySystem()
-    print(library_system.books)
-    print(library_system.members)
+    library_system.run()
