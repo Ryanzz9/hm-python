@@ -14,11 +14,16 @@ from openai import OpenAI
 def generate_session_id():
     return datetime.now().strftime("%Y-%m-%d_%H-%M-%S")
 
-
+# 数据模型
 class ApiResponse(BaseModel):
     code: int
     message: str
     data: Any # 任意类型的数据
+
+class ChatRequest(BaseModel):
+    session_id: str
+    message: str
+
 
 
 # 创建FastAPI应用
@@ -57,7 +62,14 @@ def create_session() ->ApiResponse:
         json.dump(session_data, f, ensure_ascii=False, indent=2)
 
     # 3. 返回数据
-    return ApiResponse(code=0, message="创建会话成功", data={"session_id": session_id})
+    return ApiResponse(code=200, message="创建会话成功", data=session_id)
+
+# 与AI交互
+@app.post("/api/chat")
+def chat(request: ChatRequest):
+    print(f"与AI交互: {request.session_id} : {request.message}")
+    return ApiResponse(code=200, message="与AI交互成功", data="AI的回复")
+
 
 
 # 运行应用
