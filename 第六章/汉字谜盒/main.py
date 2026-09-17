@@ -218,6 +218,21 @@ def get_session(session_id: str) -> ApiResponse:
     return ApiResponse(code=200, message="获取会话成功", data=session_data)
 
 
+
+# 删除指定会话
+@app.delete("/api/sessions/{session_id}")
+def delete_session(session_id: str) -> ApiResponse:
+    print(f"删除会话: {session_id}")
+    # 1. 获取会话文件
+    session_path = get_session_file_name(session_id)
+    # 2. 删除文件
+    if os.path.exists(session_path):
+        os.remove(session_path)
+    # 3. 返回数据
+    return ApiResponse(code=200, message="删除会话成功", data=None)
+
+
+
 # 运行应用
 if __name__ == "__main__":
     import uvicorn
