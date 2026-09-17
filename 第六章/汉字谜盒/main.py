@@ -184,6 +184,40 @@ def chat(request: ChatRequest):
 # 7.返回数据
     return ApiResponse(code=200, message="与AI交互成功", data=ai_response)
 
+
+@app.get("/api/sessions")
+def get_sessions() -> ApiResponse:
+    print("获取会话列表")
+    # 1. 获取会话列表
+    session_files = os.listdir("sessions")
+
+
+    session_ids = [file.split(".")[0] for file in session_files]
+    # 等价于：
+    # session_ids = []
+    # for file in session_files:
+    #     session_ids.append(file.split(".")[0])
+    # session_files 是 os.listdir("sessions") 返回的列表
+
+    # file 会依次代表列表里的每一个元素：
+    # file.split(".")[0] 就是把文件名按 . 分割，取第一部分：session_id
+
+    session_ids.sort(reverse=True)
+    # 2. 返回数据
+    return ApiResponse(code=200, message="获取会话列表成功", data=session_ids)
+
+
+@app.get("/api/sessions/{session_id}")
+def get_session(session_id: str) -> ApiResponse:
+    print(f"获取会话: {session_id}")
+    # 1. 获取会话文件
+    session_path = get_session_file_name(session_id)
+    with open(session_path, "r", encoding="utf-8") as f:
+        session_data = json.load(f)
+    # 2. 返回数据
+    return ApiResponse(code=200, message="获取会话成功", data=session_data)
+
+
 # 运行应用
 if __name__ == "__main__":
     import uvicorn
