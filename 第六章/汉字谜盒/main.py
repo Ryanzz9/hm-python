@@ -1,6 +1,6 @@
 from fastapi import FastAPI
 from pip._internal.utils import datetime
-from starlette.responses import FileResponse
+from starlette.responses import FileResponse, JSONResponse
 from fastapi.staticfiles import StaticFiles
 import os
 from datetime import datetime
@@ -8,8 +8,20 @@ import json
 from pydantic import BaseModel
 from typing import Any
 from openai import OpenAI
+import logging
 
-from 第六章.汉字谜盒.bak import client
+# 设置日志级别和格式
+# %(asctime)s : 时间
+# %(levelname)s : 日志级别
+# %(filename)s : 文件名
+# %(lineno)d : 行号
+# %(message)s : 日志内容
+logging.basicConfig(
+    level=logging.INFO, # 设置日志级别为INFO
+    format='%(asctime)s - %(levelname)s - %(filename)s:%(lineno)d - %(message)s') # 设置日志格式
+
+
+
 
 # 系统提示词 - 适配DeepSeek V4
 SYSTEM_PROMPT = """
@@ -117,13 +129,13 @@ if not os.path.exists("sessions"):
 # 定义根路径操作
 @app.get("/")
 def root():
-    print("访问项目首页")
+    logging.info("访问项目首页")
     return FileResponse("static/index.html")
 
 # 创建会话
 @app.post("/api/sessions")
 def create_session() ->ApiResponse:
-    print("创建会话")
+    logging.info("创建会话")
     # 1. 生成会话的标识(名字)
     session_id = generate_session_id()
 
@@ -142,7 +154,7 @@ def create_session() ->ApiResponse:
 # 与AI交互
 @app.post("/api/chat")
 def chat(request: ChatRequest):
-    print(f"与AI交互: {request.session_id} : {request.message}")
+    logging.info(f"与AI交互: {request.session_id} : {request.message}")
     #return ApiResponse(code=200, message="与AI交互成功", data=ai_response)
     # 逻辑实现----> 与AI大模型交互
     # 1.加载json文件中的会话数据
@@ -158,7 +170,7 @@ def chat(request: ChatRequest):
     messages.append({"role":"user", "content":request.message})
 
    # 3. 调用AI大模型 DeepSeek
-    print("----> 请求的会话信息：", messages)
+    logging.info(f"----> 请求的会话信息：{messages}")
     response = client.chat.completions.create(
         model="deepseek-v4-pro",
         messages=messages,
@@ -169,13 +181,13 @@ def chat(request: ChatRequest):
 
 # 4.获取响应的数据
     ai_response = response.choices[0].message.content
-    print("--- AI大模型响应的数据：", ai_response)
+    logging.info(f"<--- AI大模型响应的数据：{ai_response}")
 # 5.更新会话数据中的消息列表
     messages.pop(0)
     messages.append({"role":"assistant", "content":ai_response})
     session_data["messages"] = messages
 
-    print("----> 更新后的会话信息：", session_data)
+    logging.info(f"----> 更新后的会话信息：{session_data}")
 # 6.保存会话信息到json文件中
     with open(session_path, "w", encoding="utf-8") as f:
         json.dump(session_data, f, ensure_ascii=False, indent=2)
@@ -187,7 +199,7 @@ def chat(request: ChatRequest):
 
 @app.get("/api/sessions")
 def get_sessions() -> ApiResponse:
-    print("获取会话列表")
+    logging.info("获取会话列表")
     # 1. 获取会话列表
     session_files = os.listdir("sessions")
 
@@ -209,7 +221,7 @@ def get_sessions() -> ApiResponse:
 
 @app.get("/api/sessions/{session_id}")
 def get_session(session_id: str) -> ApiResponse:
-    print(f"获取会话: {session_id}")
+    logging.info(f"获取会话: {session_id}")
     # 1. 获取会话文件
     session_path = get_session_file_name(session_id)
     with open(session_path, "r", encoding="utf-8") as f:
@@ -232,7 +244,20 @@ def delete_session(session_id: str) -> ApiResponse:
     return ApiResponse(code=200, message="删除会话成功", data=None)
 
 
+# 定义异常处理器，捕获所有异常 ---> 返回的对象的类型得是 Response
+@app.exception_handler(Exception)
+def handle_exception(request:Request, exc:Exception):
+    logging.error(f"处理异常, 请求路径: {request.url}, 捕获到异常: {exc}")
+    return JSONResponse(
+        status_code=500,  # HTTP 状态码：告诉浏览器、网关、监控系统：服务器内部错误
+        content={
+            "code": 500,  # 业务状态码：告诉前端：这次业务处理失败
+            "message": "服务器错误，请联系管理员",
+            "data": None
+        }
+    )
 
+#JSONResponse 是 Response 的子类，满足异常处理器返回 Response 的要求
 # 运行应用
 if __name__ == "__main__":
     import uvicorn

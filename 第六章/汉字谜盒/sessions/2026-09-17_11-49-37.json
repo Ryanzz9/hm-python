@@ -1,4 +1,13 @@
 {
   "current_session": "2026-09-17_11-49-37",
-  "messages": []
+  "messages": [
+    {
+      "role": "user",
+      "content": "kk"
+    },
+    {
+      "role": "assistant",
+      "content": "你好呀！来猜一个字谜：“一加一不是二”（打一字）"
+    }
+  ]
 }
